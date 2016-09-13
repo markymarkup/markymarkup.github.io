@@ -58,7 +58,7 @@ $(function(){
           		'<div class="input-group">' +
             		'<span class="input-group-addon" id="basic-addon' + playerNum + '">' + playerName + ':</span>' +
             		'<input type="text" class="form-control player_input" placeholder="Player Name" aria-describedby="basic-addon' + playerNum + '">' +
-            		'<'
+            		//'<'
           		'</div>' +
         	'</div>'
         );
