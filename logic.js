@@ -1,8 +1,9 @@
 $(function(){
 	var previousLink;
 	var uniqueSpies = [];
-
-	$("#add_player").click(addPlayer);
+	var roundPlayers = [];
+	var noPlayers;
+	$("#add_player").click(function(event) {addPlayer("");});
 	$("#rem_player").click(remPlayer);
 	$("#start_game").click(startGame);
 
@@ -12,13 +13,12 @@ $(function(){
 	{
 		if(event != null)
 		{
-			console.log("Just clicked: " + event);
+			$('.round' + previousLink[1]).hide();
 			if(event == 'last' || event == 'next')
 			{
 				if($('#' + event).parents('li').hasClass('disabled'))
 				{
 					event = previousLink;
-					console.log(event + " Disabled");
 				}
 				else
 				{
@@ -27,20 +27,9 @@ $(function(){
 					else
 					if(event == 'next')
 						event = previousLink[0] + (parseInt(previousLink[1]) + 1);
-
-					console.log("Before: " + previousLink);
-					console.log("After: " + event);
 				}
 			}
-			else
-			{
-				if(previousLink != event)
-				{
-					console.log("Active: " + event);
-					console.log("\nPast: " + previousLink);
 
-				}
-			}
 			if(previousLink != event)
 			{
 				$('#' + event).parents('li').addClass('active');
@@ -58,7 +47,7 @@ $(function(){
 			}
 		}
 
-		
+		$('.round' + previousLink[1]).show();
 	}
 
 	function checkPlayers()
@@ -92,31 +81,49 @@ $(function(){
         checkPlayers();
     }
 
-	function addPlayer()
+	function addPlayer(name)
 	{
         if($("#add_player").hasClass("disabled")) return false;
 
         var playerNum = $(".players .player_data").length+1;
+        var playerPlace;
         var playerName;
         var playerName_type;
 
         if(playerNum < 10)
-    		playerName = "Player 0" + playerNum;
+    		playerPlace = "Player 0" + playerNum;
     	else
-    		playerName = "Player " + playerNum;
+    		playerPlace = "Player " + playerNum;
 
-    	playerName_type = playerName.split(' ').join('_');
+        if(name == "")
+        {
+		    console.log("P" + playerNum + ": Blank");
+        	playerName = playerPlace;
+	    	playerName_type = playerName.split(' ').join('_');
+	    }
+	    else
+	    {
+		    console.log("P" + playerNum + ": Named");
+	    	playerName = playerName_type = name;
+	    }
+
+	    console.log("P" + playerNum + ": " + playerName);
 
         $(".players").append
         (
         	'<div id="p' + playerNum + '" class="col-md-4 col-md-offset-4 player_data ' + playerName_type + '">' +
         		'<button type="button" class="btn btn-primary btn-block" id="player_button">' + playerName_type + '</button>' + 
           		'<div class="input-group">' +
-            		'<span class="input-group-addon" id="basic-addon' + playerNum + '">' + playerName + ':</span>' +
+            		'<span class="input-group-addon" id="basic-addon' + playerNum + '">' + playerPlace + ':</span>' +
             		'<input type="text" class="form-control player_input" placeholder="Player Name" aria-describedby="basic-addon' + playerNum + '">' +
           		'</div>' +
         	'</div>'
         );
+
+        if(name != "")
+        {
+        	$("#p" + playerNum + " .player_input").val(playerName);
+        }
 
         var input = $("#p" + playerNum + " .player_input");
 
@@ -126,6 +133,13 @@ $(function(){
 
         	playerName = input.val();
 
+        	if(playerName == "")
+        	{
+   		        if(playerNum < 10)
+	        		playerName = "Player_0" + playerNum;
+	        	else
+	        		playerName = "Player_" + playerNum;
+        	}
         	$("#p" + playerNum).addClass(playerName);
         	console.log($("#p" + playerNum + " #player_button").html());
         	$("#p" + playerNum + " #player_button").html(playerName);
@@ -137,7 +151,7 @@ $(function(){
 
 	function setSpies()
 	{
-		for(var i = 1; i <= $(".players .player_data").length; i++)
+		for(var i = 1; i <= noPlayers; i++)
 		{
 			if($("#p" + i + " #player_button").hasClass("spy"))
 			{
@@ -153,7 +167,7 @@ $(function(){
 		var chosenSpy;		
 		if(!uniqueSpies.length) 
 		{
-			for(var i = 1; i <= $(".players .player_data").length; i++)
+			for(var i = 1; i <= noPlayers; i++)
 				uniqueSpies.push(i);
 		}
 
@@ -167,9 +181,39 @@ $(function(){
 		}
 	}
 
+	function setRounds(players)
+	{
+		switch(players)
+		{
+			case 5:
+				roundPlayers = [2, 3, 2, 3, 3];
+				break;
+			case 6:
+				roundPlayers = [2, 3, 4, 3, 4];
+				break;
+			case 7:
+				roundPlayers = [2, 3, 3, 4, 4];
+				break;
+			case 8:
+			case 9:
+			case 10:
+				roundPlayers = [3, 4, 4, 5, 5];
+				break;
+		}
+	}
+
 	function startGame()
 	{
-		switch($(".players .player_data").length)
+        var storePlayers = [];
+
+        $(".player_input").each(function(){
+            storePlayers.push($(this).val());
+        });
+
+        store.set('players',storePlayers);
+
+		noPlayers = $(".players .player_data").length;
+		switch(noPlayers)
 		{
 			case 5:
 			case 6:
@@ -187,12 +231,13 @@ $(function(){
 				break;
 		}
        	setSpies();
+       	setRounds(noPlayers);
 		$(".players .input-group").hide();
         $(".players #player_button").show();
 		$('.add_remove').hide();
 		$('.start').hide();
 
-		$('#no_players').text($(".players .player_data").length + " Player Game");
+		$('#no_players').text(noPlayers + " Player Game");
 		$(".round_marker").append
 		(
 			'<nav aria-label="Page navigation">' +
@@ -222,6 +267,14 @@ $(function(){
 			'</ul>'*/
 		);
 
+		for(var i = 1; i <= 5; i++)
+		{
+			$(".round" + i).append
+			(
+				'<p>Choose ' + roundPlayers[i - 1] + ' players</p>'
+			);
+		}
+
 		previousLink = "r1";
 		$("#last").click(function(event) {visibleRound("last");});
 		$("#r1").click(function(event) {visibleRound("r1");});
@@ -236,7 +289,24 @@ $(function(){
 
 	window.onload = function ()
 	{
-		for(var i = 0; i < 5; i++)
+		var curPlayers = 1;
+
+		$(".rounds").hide();
+
+	    var starting_players = store.get('players') || [];
+
+	    if(starting_players.length)
+	    {
+	        for(var i=0; i<starting_players.length; i++)
+	        {
+	        	if(starting_players[i] != "")
+	        	{
+	        		curPlayers++;	
+		            addPlayer(starting_players[i]);
+	        	}
+	        }
+        }
+		for(var i = curPlayers; i <= 5; i++)
 			addPlayer();
 	}
 
