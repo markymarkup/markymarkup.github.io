@@ -97,17 +97,14 @@ $(function(){
 
         if(name == "")
         {
-		    console.log("P" + playerNum + ": Blank");
         	playerName = playerPlace;
 	    	playerName_type = playerName.split(' ').join('_');
 	    }
 	    else
 	    {
-		    console.log("P" + playerNum + ": Named");
 	    	playerName = playerName_type = name;
 	    }
 
-	    console.log("P" + playerNum + ": " + playerName);
 
         $(".players").append
         (
@@ -306,8 +303,9 @@ $(function(){
 	        	}
 	        }
         }
+
 		for(var i = curPlayers; i <= 5; i++)
-			addPlayer();
+			addPlayer("");
 	}
 
 });
